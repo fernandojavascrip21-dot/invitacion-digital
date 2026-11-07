@@ -3,6 +3,8 @@
 
   /* ================= CONFIGURACIÓN (edita aquí) ================= */
   const CONFIG = {
+    // Volumen de la canción de fondo (0 a 1). Bájalo si la quieres más suave.
+    musicVolume: 0.22,
     // Número con lada, sin "+" ni espacios (ej. "5215512345678"). Vacío = botón oculto.
     whatsappNumber: '',
     whatsappText: 'Hola, confirmo mi asistencia al bautizo de Bastian Antonio ✦',
@@ -29,151 +31,97 @@
   let opened = false;
 
   // Se enlaza lo antes posible para que el toque funcione aunque otra parte falle
-  envWrap.addEventListener('click', () => open());
-  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  // Dos toques: el 1.º activa el sonido (gesto válido para el audio del navegador), el 2.º abre el sobre.
+  // Si el sonido está silenciado (botón de arriba), basta un toque.
+  let armed = false;
+  function tapEnvelope() {
+    if (opened) return;
+    if (!armed && !Sound.muted) { armWithSound(); return; }
+    open();
+  }
+  function armWithSound() {
+    armed = true;
+    Sound.start();
+    const hintText = $('#hintText');
+    hintText.textContent = 'Un toque más… ya casi';
+    hint.classList.add('armed');
+    envelope.setAttribute('aria-label', 'Toca una vez más para abrir la invitación');
+    envWrap.classList.add('wake');
+    envWrap.addEventListener('animationend', () => envWrap.classList.remove('wake'), { once: true });
+    Sound.harp(); Sound.sparkle(4, .6);
+    if (hasGsap() && animate) {
+      const r = seal.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 12);
+    }
+  }
+  envWrap.addEventListener('click', tapEnvelope);
+  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapEnvelope(); } });
 
-  /* ---------- Efectos de sonido temáticos (sintetizados con Web Audio, sin archivos) ----------
-     Caja de música + arpa + campana de iglesia + coro suave + caballito de madera. */
+  /* ---------- Música de fondo: "Arrullo de estrellas" ----------
+     Solo suena la canción (sin efectos), a volumen bajo, en bucle y con entrada suave.
+     Coloca el archivo en assets/audio/arrullo-de-estrellas.mp3 (ver CONFIG.musicVolume). */
+  const bgm = $('#bgm');
   const Sound = (() => {
-    let ctx, master, bus, noiseBuf, muted = false;
-    const VOL = .42;
-    const lastPlay = {};
+    let ctx, gain, started = false, muted = false, wired = false;
     try { muted = localStorage.getItem('sound') === 'off'; } catch (e) {}
-    const N = { C4: 261.63, E4: 329.63, G4: 392, C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5, D6: 1174.7, E6: 1318.5, G6: 1568 };
-    const PENT = [N.C5, N.D5, N.E5, N.G5, N.A5, N.C6, N.D6, N.E6];
+    const level = () => (muted ? 0 : CONFIG.musicVolume);
 
     function init() {
-      if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
-      try {
-        ctx = new AC();
-        master = ctx.createGain(); master.gain.value = muted ? 0 : VOL;
-        const comp = ctx.createDynamicsCompressor();
-        // un toque de reverberación suave (eco de iglesia)
-        const delay = ctx.createDelay(); delay.delayTime.value = .24;
-        const fb = ctx.createGain(); fb.gain.value = .38;
-        const wet = ctx.createGain(); wet.gain.value = .32;
-        const damp = ctx.createBiquadFilter(); damp.type = 'lowpass'; damp.frequency.value = 2200;
-        bus = ctx.createBiquadFilter(); bus.type = 'lowpass'; bus.frequency.value = 2600; bus.Q.value = .4; bus.connect(master);
-        master.connect(comp); master.connect(delay);
-        delay.connect(damp); damp.connect(fb); fb.connect(delay); damp.connect(wet); wet.connect(comp);
-        comp.connect(ctx.destination);
-        noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
-        const data = noiseBuf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-      } catch (e) { ctx = null; }
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          try {
+            ctx = new AC();
+            gain = ctx.createGain(); gain.gain.value = started ? level() : 0;
+            gain.connect(ctx.destination);
+            // El volumen se controla con Web Audio (en iPhone `audio.volume` no funciona)
+            ctx.createMediaElementSource(bgm).connect(gain); wired = true;
+          } catch (e) { wired = false; }
+        }
+      }
+      if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
     }
-    const ready = () => ctx && !muted && ctx.state === 'running';
-    const gate = (name, ms) => {
-      const now = performance.now();
-      if (lastPlay[name] && now - lastPlay[name] < ms) return false;
-      lastPlay[name] = now; return true;
-    };
-
-    function tone(freq, t0, dur, { type = 'sine', vol = .2, attack = .006, slideTo, out } = {}) {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = type; o.frequency.setValueAtTime(freq, t0);
-      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
-      g.gain.setValueAtTime(.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
-      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-      o.connect(g); g.connect(out || bus); o.start(t0); o.stop(t0 + dur + .05);
+    function fadeTo(v, secs) {
+      if (wired && ctx) { gain.gain.cancelScheduledValues(ctx.currentTime); gain.gain.setTargetAtTime(v, ctx.currentTime, secs / 3); }
+      else bgm.volume = Math.max(0, Math.min(1, v));
     }
-    function noise(t0, dur, { f0 = 500, f1 = 2500, q = 1, vol = .2, type = 'bandpass' } = {}) {
-      const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      src.buffer = noiseBuf; f.type = type; f.Q.value = q;
-      f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
-      g.gain.setValueAtTime(.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0 + dur * .35);
-      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-      src.connect(f); f.connect(g); g.connect(bus); src.start(t0); src.stop(t0 + dur + .05);
+    function start() {
+      if (started || !bgm) return;
+      init();
+      started = true;
+      if (!wired) bgm.volume = 0;
+      const p = bgm.play();
+      if (p && p.catch) p.catch(() => { started = false; });   // sin archivo o bloqueado: se reintenta en el siguiente gesto
+      fadeTo(level(), 4);
     }
-
-    /* Caja de música: tono puro brillante con parcial agudo y "clic" de la púa */
-    function musicBox(freq, t0, vol = .08, dur = 1.8) {
-      tone(freq, t0, dur, { vol, attack: .012 });
-      tone(freq * 2, t0, dur * .4, { vol: vol * .22, attack: .012 });
-    }
-    /* Arpa: pulsación suave */
-    function harp(freq, t0, vol = .09, dur = 2.2) {
-      tone(freq, t0, dur, { vol, attack: .014 });
-      tone(freq * 2, t0, dur * .4, { vol: vol * .2, attack: .014 });
-    }
-    /* Campana de iglesia */
-    function bell(freq, t0, vol = .09, dur = 5) {
-      [[1, 1, 1], [2, .35, .6], [3, .15, .4], [.5, .5, 1]].forEach(([r, v, d]) => tone(freq * r, t0, dur * d, { vol: vol * v, attack: .02 }));
-    }
-    /* Coro suave: acorde con ataque lento y vibrato */
-    function pad(freqs, t0, dur, vol = .05) {
-      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0 + dur * .45);
-      g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
-      f.connect(g); g.connect(bus);
-      freqs.forEach(fr => [-4, 4].forEach(det => {
-        const o = ctx.createOscillator(), lfo = ctx.createOscillator(), lg = ctx.createGain();
-        o.type = 'triangle'; o.frequency.value = fr; o.detune.value = det;
-        lfo.frequency.value = 5 + Math.random(); lg.gain.value = 3; lfo.connect(lg); lg.connect(o.detune);
-        o.connect(f); o.start(t0); lfo.start(t0); o.stop(t0 + dur + .1); lfo.stop(t0 + dur + .1);
-      }));
-    }
-
-    // Nana de cuna (primer verso, melodía tradicional): [nota, tiempos]
-    const LULLABY = [[N.E5, .5], [N.E5, .5], [N.G5, 2], [N.E5, .5], [N.E5, .5], [N.G5, 2], [N.E5, .5], [N.G5, .5], [N.C6, 1.5], [N.B5, 1], [N.A5, .5], [N.A5, .5], [N.G5, 2.5]];
-
+    const noop = () => {};
     return {
-      init,
+      init, start,
+      get running() { return !!bgm && !bgm.paused && (!ctx || ctx.state === 'running'); },
       get muted() { return muted; },
       setMuted(v) {
         muted = v;
         try { localStorage.setItem('sound', v ? 'off' : 'on'); } catch (e) {}
-        if (master) master.gain.setTargetAtTime(v ? 0 : VOL, ctx.currentTime, .03);
+        if (started) fadeTo(level(), .4);
       },
-      // dulce "ding" de caja de música
-      pop() { if (!ready() || !gate('pop', 60)) return; musicBox(N.G5, ctx.currentTime, .1, 1.6); },
-      // arpa ascendente (al abrir solapa / moño)
-      creak() { if (!ready()) return; const t = ctx.currentTime; [N.C5, N.E5, N.G5, N.C6].forEach((f, i) => harp(f, t + i * .11, .08, 2.2)); },
-      // suave brisa / "susurro de papel"
-      whoosh(vol = .1, dur = .9) { if (!ready()) return; noise(ctx.currentTime, dur * 1.3, { f0: 250, f1: 900, q: .5, vol: vol * .25, type: 'lowpass' }); },
-      // lluvia de destellos de caja de música
-      sparkle(n = 10, spread = .9) {
-        if (!ready()) return;
-        const t = ctx.currentTime;
-        for (let i = 0; i < n; i++) musicBox(PENT[Math.floor(Math.random() * PENT.length)], t + Math.random() * spread * 1.3, .03 + Math.random() * .025, 1.4 + Math.random() * .6);
-      },
-      // campana de iglesia + nana + coro angelical
-      fanfare() {
-        if (!ready()) return;
-        const t = ctx.currentTime;
-        bell(N.C4, t, .09, 5);
-        pad([N.C4, N.E4, N.G4, N.C5], t + .1, 4.6, .035);
-        LULLABY.forEach(([f, b], i, arr) => {
-          const at = t + .45 + arr.slice(0, i).reduce((s, x) => s + x[1], 0) * .36;
-          musicBox(f, at, .075, 2);
-        });
-      },
-      chime(i = 0) { if (!ready() || !gate('chime', 150)) return; musicBox(PENT[i % PENT.length], ctx.currentTime, .07, 1.8); },
-      twinkle() { if (!ready() || !gate('twinkle', 140)) return; musicBox(PENT[2 + Math.floor(Math.random() * 5)], ctx.currentTime, .04, 1.2); },
-      // arpegio dulce de arpa
-      harp() { if (!ready()) return; const t = ctx.currentTime; [N.E5, N.G5, N.C6].forEach((f, i) => harp(f, t + i * .12, .07, 2.2)); },
-      // toc de madera: caballito mecedor
-      knock() {
-        if (!ready() || !gate('knock', 160)) return;
-        const t = ctx.currentTime;
-        tone(196, t, .22, { vol: .1, slideTo: 150, attack: .008 });
-        tone(262, t + .2, .26, { vol: .08, slideTo: 196, attack: .008 });
-      },
-      // coro suave
-      choir() { if (!ready()) return; pad([N.C4, N.E4, N.G4], ctx.currentTime, 2.8, .03); },
-      click() { if (!ready() || !gate('click', 80)) return; musicBox(N.G5, ctx.currentTime, .06, 1.1); }
+      pause() { if (started) bgm.pause(); },
+      resume() { if (started && !muted) { init(); bgm.play().catch(() => {}); } },
+      // Los efectos de sonido fueron reemplazados por la canción: se dejan vacíos
+      pop: noop, creak: noop, whoosh: noop, sparkle: noop, fanfare: noop, chime: noop,
+      twinkle: noop, harp: noop, knock: noop, choir: noop, click: noop
     };
   })();
+  // No dejar sonando la canción si la página queda en segundo plano
+  document.addEventListener('visibilitychange', () => document.hidden ? Sound.pause() : Sound.resume());
 
-  // El audio solo puede iniciarse tras un gesto del usuario
-  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
-    window.addEventListener(ev, () => Sound.init(), { once: true, passive: true }));
+  // Chrome solo permite audio tras un gesto de activación (en móvil: touchend/click, no touchstart).
+  // Se reintenta en cada gesto hasta que el audio esté realmente activo.
+  const unlockEvents = ['pointerup', 'touchend', 'click', 'keydown'];
+  function unlockAudio() {
+    Sound.init();
+    if (Sound.running) unlockEvents.forEach(ev => window.removeEventListener(ev, unlockAudio, true));
+  }
+  unlockEvents.forEach(ev => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
   const soundBtn = $('#soundBtn');
   function paintSoundBtn() {
     soundBtn.setAttribute('aria-pressed', String(Sound.muted));
@@ -291,7 +239,7 @@
 
   const revealSounds = {
     drop: () => { Sound.harp(); },
-    name: () => { Sound.chime(5); Sound.sparkle(5, .7); },
+    name: () => { Sound.chime(5); Sound.sparkle(6, .9); },
     ribbon: () => { Sound.whoosh(.12, .6); Sound.chime(3); },
     pop: () => Sound.twinkle(),
     'slide-l': () => Sound.knock(),
@@ -350,6 +298,7 @@
   function open() {
     if (opened) return;
     opened = true;
+    Sound.start();
     envelope.style.animation = 'none';
     envelope.setAttribute('aria-expanded', 'true');
     envelope.disabled = true;
