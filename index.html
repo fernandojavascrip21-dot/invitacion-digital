@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mi bautizo · Bastian Antonio</title>
+  <meta name="description" content="Estás invitado al bautizo de Bastian Antonio. Sábado 28 de noviembre de 2026.">
+  <meta name="theme-color" content="#89CFF0">
+
+  <!-- Vista previa al compartir (al publicar, cambia og:image por la URL absoluta) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mi bautizo · Bastian Antonio">
+  <meta property="og:description" content="Un ángel bajó del cielo para sonreírle a la vida. Sábado 28 de noviembre de 2026.">
+  <meta property="og:image" content="assets/img/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23E5B13A' d='M12 1l3.1 7.2 7.9.7-6 5.2 1.8 7.7L12 17.5 5.2 21.8 7 14.1 1 8.9l7.9-.7z'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="preload" as="image" href="assets/img/carousel.webp">
+</head>
+<body class="is-locked">
+
+  <!-- Símbolos SVG reutilizables -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F7D36B"/><stop offset=".55" stop-color="#E5B13A"/><stop offset="1" stop-color="#C98F1E"/>
+      </linearGradient>
+      <radialGradient id="cloudG" cx=".5" cy=".35" r=".75">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#E4EFFA"/><stop offset="1" stop-color="#C9DDF2"/>
+      </radialGradient>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="130%"><feGaussianBlur stdDeviation="1.1"/></filter>
+      <symbol id="star" viewBox="0 0 24 24">
+        <path d="M12 1.6l3 7 7.6.7-5.8 5 1.8 7.5L12 17.7 5.4 21.8l1.8-7.5-5.8-5 7.6-.7z" fill="url(#goldG)" stroke="#C98F1E" stroke-width=".7" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="cloud" viewBox="0 0 200 100">
+        <g fill="url(#cloudG)" filter="url(#soft)">
+          <circle cx="52" cy="62" r="26"/><circle cx="86" cy="42" r="32"/><circle cx="124" cy="48" r="28"/>
+          <circle cx="152" cy="64" r="22"/><rect x="40" y="62" width="126" height="26" rx="13"/>
+        </g>
+        <path d="M30 80q70 12 140 0" fill="none" stroke="#B7CFE8" stroke-width="2" opacity=".5"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Cielo de fondo -->
+  <div class="sky" aria-hidden="true">
+    <svg class="sky-cloud c1"><use href="#cloud"/></svg>
+    <svg class="sky-cloud c2"><use href="#cloud"/></svg>
+    <svg class="sky-cloud c3"><use href="#cloud"/></svg>
+    <svg class="sky-cloud c4"><use href="#cloud"/></svg>
+    <div class="sky-stars" id="skyStars"></div>
+  </div>
+  <div class="burst" id="burst" aria-hidden="true"></div>
+
+  <button class="sound-toggle" id="soundBtn" type="button" aria-label="Silenciar sonidos" aria-pressed="false">
+    <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+    <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v2.2l2.4 2.4c.1-.2.1-.4.1-.6zM19 12c0 .9-.2 1.8-.5 2.600l1.500 1.500A9 9 0 0 0 21 12a9 9 0 0 0-7-8.800v2.100A7 7 0 0 1 19 12zM4.300 3L3 4.300 7.700 9H3v6h4l5 4v-6.700l4.300 4.300c-.7.500-1.400.9-2.300 1.100v2.100a9 9 0 0 0 3.500-1.700l2 2 1.300-1.300L4.300 3zM12 5L9.900 7.100 12 9.200V5z"/></svg>
+  </button>
+
+  <!-- ESCENA 1: el sobre -->
+  <section class="stage" id="stage">
+    <p class="kicker">Estás invitado</p>
+    <div class="env-wrap" id="envWrap">
+      <button class="envelope" id="envelope" type="button" aria-label="Abrir invitación al bautizo de Bastian Antonio">
+        <span class="env-back"></span>
+        <span class="mini" id="mini">
+          <img src="assets/img/carousel.webp" alt="" width="270" height="320">
+          <b>Mi bautizo</b>
+          <i>Bastian Antonio</i>
+        </span>
+        <span class="pocket pocket-l"></span>
+        <span class="pocket pocket-r"></span>
+        <span class="pocket pocket-b"></span>
+        <span class="flap" id="flap"><span class="face front"></span><span class="face back"></span></span>
+        <span class="seal" id="seal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#star"/></svg>
+        </span>
+      </button>
+    </div>
+    <p class="hint" id="hint"><span>Toca para abrir</span></p>
+  </section>
+
+  <!-- ESCENA 2: la invitación -->
+  <main class="letter-wrap" id="letterWrap">
+    <article class="letter" id="letter" aria-label="Invitación al bautizo de Bastian Antonio">
+      <div class="paper-tex" aria-hidden="true"></div>
+
+      <!-- Óvalo (se dibuja por JS según el tamaño) -->
+      <svg class="oval" id="oval" aria-hidden="true">
+        <ellipse id="ovalGold" fill="none" stroke="#E5B13A" stroke-width="2" pathLength="1"/>
+        <ellipse id="ovalBlue" fill="none" stroke="#9FC3EA" stroke-width="1.6" pathLength="1"/>
+      </svg>
+
+      <!-- Decoración: nubes y estrellas -->
+      <div class="deco" aria-hidden="true">
+        <svg class="cloud d1" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="cloud d2" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="cloud d3" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="cloud d4" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="cloud d5" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="cloud d6" data-r="fade"><use href="#cloud"/></svg>
+        <svg class="st s1" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s2" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s3" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s4" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s5" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s6" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s7" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s8" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s9" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s10" data-r="pop"><use href="#star"/></svg>
+        <svg class="st s11" data-r="pop"><use href="#star"/></svg>
+      </div>
+
+      <div class="content">
+        <div class="carousel" data-r="drop"><img src="assets/img/carousel.webp" alt="Caballito de carrusel" width="270" height="320"></div>
+
+        <h1 class="title" data-r="up">Mi bautizo</h1>
+
+        <div class="divider bowdiv" data-r="up">
+          <span class="ln"></span>
+          <img src="assets/img/bow-small.webp" alt="" width="114" height="62">
+          <span class="ln"></span>
+        </div>
+
+        <h2 class="name" data-r="name" aria-label="Bastian Antonio">
+          <span aria-hidden="true"><span class="cap">B</span>astian <span class="cap">A</span>ntonio</span>
+        </h2>
+
+        <p class="quote" data-r="up">Un ángel bajó del cielo para sonreírle a la vida,<br>hoy lo presentamos ante Dios para sellar su fe</p>
+
+        <div class="ribbon" data-r="ribbon"><span>Sábado 28 de noviembre de 2026</span></div>
+
+        <div class="details">
+          <div class="horse left" data-r="slide-l"><div class="flip"><img src="assets/img/horse.webp" alt="" width="250" height="220"></div></div>
+          <div class="horse right" data-r="slide-r"><div class="flip"><img src="assets/img/horse.webp" alt="" width="250" height="220"></div></div>
+
+          <section class="block" data-r="up">
+            <h3>Rito bautismal</h3>
+            <p>Parroquia de San Miguel Arcángel</p>
+            <p>1:00 pm</p>
+          </section>
+
+          <div class="divider" data-r="up"><span class="ln"></span><svg class="gstar"><use href="#star"/></svg><span class="ln"></span></div>
+
+          <section class="block" data-r="up">
+            <h3>Recepción</h3>
+            <p>Terraza Huerta La Bendición</p>
+            <p>Brizuela 570</p>
+            <p>2:00 pm</p>
+          </section>
+
+          <div class="divider" data-r="up"><span class="ln"></span><svg class="gstar"><use href="#star"/></svg><span class="ln"></span></div>
+
+          <section class="block" data-r="up">
+            <h3 class="it">Mis padres</h3>
+            <p class="names">Ashley Malta <b>·</b> Jesús Flores</p>
+          </section>
+
+          <div class="divider" data-r="up"><span class="ln"></span><svg class="gstar"><use href="#star"/></svg><span class="ln"></span></div>
+
+          <section class="block" data-r="up">
+            <h3 class="it">Mis padrinos</h3>
+            <p class="names">Suzet Rodríguez <b>·</b> Juan Flores</p>
+          </section>
+        </div>
+
+        <img class="bow-bottom" data-r="bow" src="assets/img/bow-bottom.webp" alt="" width="590" height="150">
+      </div>
+    </article>
+
+    <nav class="actions" aria-label="Acciones">
+      <section class="countdown" id="countdown" data-r="up" role="timer" aria-label="Cuenta regresiva para el bautizo">
+        <p class="cd-title">Faltan</p>
+        <div class="cd-grid">
+          <div class="cd-box"><b id="cdD">0</b><span>días</span></div>
+          <div class="cd-box"><b id="cdH">00</b><span>horas</span></div>
+          <div class="cd-box"><b id="cdM">00</b><span>min</span></div>
+          <div class="cd-box"><b id="cdS">00</b><span>seg</span></div>
+        </div>
+        <p class="cd-sub" id="cdSub">para el gran día ✦</p>
+      </section>
+      <a class="btn" id="btnChurch" target="_blank" rel="noopener" data-r="up">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        Cómo llegar · Parroquia
+      </a>
+      <a class="btn" id="btnParty" target="_blank" rel="noopener" data-r="up">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        Cómo llegar · Recepción
+      </a>
+      <a class="btn btn-wa" id="btnWa" target="_blank" rel="noopener" data-r="up" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.1.1.3 0 .5l-.3.4-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.2 1.4 2.5 1.5.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.5z"/></svg>
+        Confirmar asistencia
+      </a>
+      <p class="foot" data-r="up">Con cariño, Bastian Antonio ✦</p>
+    </nav>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
