@@ -28,6 +28,10 @@
   const letterWrap = $('#letterWrap'), letter = $('#letter');
   let opened = false;
 
+  // Se enlaza lo antes posible para que el toque funcione aunque otra parte falle
+  envWrap.addEventListener('click', () => open());
+  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+
   /* ---------- Efectos de sonido temáticos (sintetizados con Web Audio, sin archivos) ----------
      Caja de música + arpa + campana de iglesia + coro suave + caballito de madera. */
   const Sound = (() => {
@@ -251,7 +255,8 @@
     set(blue, w * 0.030, h * 0.026);
   }
   sizeOval();
-  new ResizeObserver(sizeOval).observe(letter);
+  if ('ResizeObserver' in window) new ResizeObserver(sizeOval).observe(letter);
+  else window.addEventListener('resize', sizeOval);
 
   /* ---------- Explosión de estrellas ---------- */
   function burst(x, y, n = 34) {
@@ -350,7 +355,10 @@
     envelope.disabled = true;
 
     if (!animate || !hasGsap()) { showLetterInstantly(); return; }
+    try { playOpening(); } catch (err) { console.error(err); showLetterInstantly(); }
+  }
 
+  function playOpening() {
     document.documentElement.classList.add('js');
     sizeOval();
     const r = seal.getBoundingClientRect();
@@ -384,9 +392,6 @@
       .add(() => { finishOpen(); startReveals(); gsap.set(letter, { clearProps: 'all' }); }, 3.5)
       .to(stage, { opacity: 0, duration: .01 }, 3.5);
   }
-
-  envelope.addEventListener('click', open);
-  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
 
   /* Atajo para pruebas / compartir directo: ?abierta */
   if (/[?&#]abierta/.test(location.search + location.hash)) {
