@@ -62,9 +62,11 @@
         noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 1.5, ctx.sampleRate);
         const data = noiseBuf.getChannelData(0);
         for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-      } catch (e) { ctx = null; }
+      } catch (e) { ctx = null; return; }
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     }
-    const ready = () => ctx && !muted && ctx.state === 'running';
+    // Si el contexto aún está "suspended", lo programado suena en cuanto se reanude
+    const ready = () => ctx && !muted && ctx.state !== 'closed';
     const gate = (name, ms) => {
       const now = performance.now();
       if (lastPlay[name] && now - lastPlay[name] < ms) return false;
@@ -125,6 +127,7 @@
 
     return {
       init,
+      get running() { return !!ctx && ctx.state === 'running'; },
       get muted() { return muted; },
       setMuted(v) {
         muted = v;
@@ -171,9 +174,14 @@
     };
   })();
 
-  // El audio solo puede iniciarse tras un gesto del usuario
-  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
-    window.addEventListener(ev, () => Sound.init(), { once: true, passive: true }));
+  // Chrome solo permite audio tras un gesto de activación (en móvil: touchend/click, no touchstart).
+  // Se reintenta en cada gesto hasta que el audio esté realmente activo.
+  const unlockEvents = ['pointerup', 'touchend', 'click', 'keydown'];
+  function unlockAudio() {
+    Sound.init();
+    if (Sound.running) unlockEvents.forEach(ev => window.removeEventListener(ev, unlockAudio, true));
+  }
+  unlockEvents.forEach(ev => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
   const soundBtn = $('#soundBtn');
   function paintSoundBtn() {
     soundBtn.setAttribute('aria-pressed', String(Sound.muted));
@@ -350,6 +358,7 @@
   function open() {
     if (opened) return;
     opened = true;
+    Sound.init();
     envelope.style.animation = 'none';
     envelope.setAttribute('aria-expanded', 'true');
     envelope.disabled = true;
