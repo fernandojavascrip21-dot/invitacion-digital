@@ -53,6 +53,7 @@ img { display: block; max-width: 100%; height: auto; }
 
 /* ============ Escena 1: sobre ============ */
 .stage {
+  touch-action: manipulation;
   position: fixed; inset: 0; z-index: 10;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: clamp(22px, 5vh, 44px); padding: 24px 16px;
@@ -72,7 +73,8 @@ img { display: block; max-width: 100%; height: auto; }
 }
 .envelope:focus-visible { outline: 3px solid var(--gold); outline-offset: 10px; border-radius: 8px; }
 @keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-.6deg); } 50% { transform: translateY(-10px) rotate(.6deg); } }
-.envelope > span { position: absolute; display: block; }
+.envelope { touch-action: manipulation; -webkit-appearance: none; appearance: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.envelope > span { position: absolute; display: block; pointer-events: none; }
 .env-back { inset: 0; border-radius: 6px; background: linear-gradient(160deg, #94D3F2, #77C0E8); z-index: 0; }
 .pocket { inset: 0; z-index: 3; }
 .pocket-l { background: linear-gradient(90deg, #9BD8F5, #8AD0F0); clip-path: polygon(0 0, 52% 54%, 0 100%); border-radius: 6px 0 0 6px; }
