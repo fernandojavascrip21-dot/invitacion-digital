@@ -10,6 +10,8 @@
     // Enlace exacto de Google Maps de la parroquia (si está vacío, busca por nombre)
     churchUrl: 'https://www.google.com/maps/place/Parroquia+de+San+Miguel+Arc%C3%A1ngel/@20.3650148,-103.8215121,17z/data=!3m1!4b1!4m6!3m5!1s0x8425e609e3307721:0x525c2d2a23791d1a!8m2!3d20.3650148!4d-103.8215121!16s%2Fg%2F1trxklgz',
     churchQuery: 'Parroquia de San Miguel Arcángel',
+    // Enlace exacto de Google Maps de la recepción (si está vacío, busca por nombre)
+    partyUrl: 'https://www.google.com/maps/place/Huerta+la+bendici%C3%B3n/@20.356665,-103.8144903,17z/data=!3m1!4b1!4m6!3m5!1s0x8425e5c80ab0b8ad:0x4437a3dd92ee054d!8m2!3d20.356665!4d-103.8144903!16s%2Fg%2F11m_k1vsdp',
     partyQuery: 'Terraza Huerta La Bendición, Brizuela 570',
     // Fecha y hora del evento (hora local del invitado) para la cuenta regresiva
     eventDate: [2026, 11, 28, 13, 0, 0]   // año, mes, día, hora, min, seg
@@ -197,7 +199,7 @@
   /* ---------- Acciones ---------- */
   const maps = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
   $('#btnChurch').href = CONFIG.churchUrl || maps(CONFIG.churchQuery);
-  $('#btnParty').href = maps(CONFIG.partyQuery);
+  $('#btnParty').href = CONFIG.partyUrl || maps(CONFIG.partyQuery);
   if (CONFIG.whatsappNumber) {
     const wa = $('#btnWa');
     wa.href = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(CONFIG.whatsappText)}`;
