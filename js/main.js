@@ -29,8 +29,31 @@
   let opened = false;
 
   // Se enlaza lo antes posible para que el toque funcione aunque otra parte falle
-  envWrap.addEventListener('click', () => open());
-  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  // Dos toques: el 1.º activa el sonido (gesto válido para el audio del navegador), el 2.º abre el sobre.
+  // Si el sonido está silenciado (botón de arriba), basta un toque.
+  let armed = false;
+  function tapEnvelope() {
+    if (opened) return;
+    if (!armed && !Sound.muted) { armWithSound(); return; }
+    open();
+  }
+  function armWithSound() {
+    armed = true;
+    Sound.init();
+    const hintText = $('#hintText');
+    hintText.textContent = 'Un toque más… ya casi';
+    hint.classList.add('armed');
+    envelope.setAttribute('aria-label', 'Toca una vez más para abrir la invitación');
+    envWrap.classList.add('wake');
+    envWrap.addEventListener('animationend', () => envWrap.classList.remove('wake'), { once: true });
+    Sound.harp(); Sound.sparkle(4, .6);
+    if (hasGsap() && animate) {
+      const r = seal.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 12);
+    }
+  }
+  envWrap.addEventListener('click', tapEnvelope);
+  envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapEnvelope(); } });
 
   /* ---------- Efectos de sonido temáticos (sintetizados con Web Audio, sin archivos) ----------
      Caja de música + arpa + campana de iglesia + coro suave + caballito de madera. */
