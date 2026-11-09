@@ -16,7 +16,7 @@
     partyUrl: 'https://www.google.com/maps/place/Huerta+la+bendici%C3%B3n/@20.356665,-103.8144903,17z/data=!3m1!4b1!4m6!3m5!1s0x8425e5c80ab0b8ad:0x4437a3dd92ee054d!8m2!3d20.356665!4d-103.8144903!16s%2Fg%2F11m_k1vsdp',
     partyQuery: 'Terraza Huerta La Bendición, Brizuela 570',
     // Fecha y hora del evento (hora local del invitado) para la cuenta regresiva
-    eventDate: [2026, 11, 28, 13, 0, 0]   // año, mes, día, hora, min, seg
+    eventDate: [2026, 11, 28, 12, 0, 0]   // año, mes, día, hora, min, seg
   };
 
   const $ = (s, r = document) => r.querySelector(s);
